@@ -1,4 +1,4 @@
-﻿namespace RestaurantReservation.Db;
+﻿namespace RestaurantReservation.Db.Entities;
 
 public class Employee
 {

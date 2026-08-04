@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace RestaurantReservation.Db;
+﻿namespace RestaurantReservation.Db.Entities;
 
 public class MenuItem
 {
