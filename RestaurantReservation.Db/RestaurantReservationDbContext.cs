@@ -247,12 +247,5 @@ public class RestaurantReservationDbContext : DbContext
         );
     }
 
-    public async Task<List<Customer>> GetCustomersWithReservationPartySizeGreaterThanAsync(int partySize)
-    {
-        return await Customers
-            .FromSql(
-                $"EXEC dbo.sp_get_customers_with_reservation_party_size_greater_than {partySize}")
-            .AsNoTracking()
-            .ToListAsync();
-    }
+    
 }

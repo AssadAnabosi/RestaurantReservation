@@ -2,256 +2,113 @@ using Microsoft.EntityFrameworkCore;
 using RestaurantReservation.Db;
 using RestaurantReservation.Db.Entities;
 using RestaurantReservation.Db.Views;
+using RestaurantReservation.Db.Repositories;
 
 namespace RestaurantReservation;
 
 public sealed class RestaurantReservationService
 {
     private readonly RestaurantReservationDbContext _context;
+    private readonly CustomerRepository _customerRepository;
+    private readonly RestaurantRepository _restaurantRepository;
+    private readonly EmployeeRepository _employeeRepository;
+    private readonly TableRepository _tableRepository;
+    private readonly ReservationRepository _reservationRepository;
+    private readonly OrderRepository _orderRepository;
+    private readonly MenuItemRepository _menuItemRepository;
+    private readonly OrderItemRepository _orderItemRepository;
+    private readonly ReservationCustomerRestaurantViewRepository _reservationCustomerRestaurantViewRepository;
+    private readonly EmployeeRestaurantViewRepository _employeeRestaurantViewRepository;
 
     public RestaurantReservationService(RestaurantReservationDbContext context)
     {
         _context = context;
+        _customerRepository = new CustomerRepository(context);
+        _restaurantRepository = new RestaurantRepository(context);
+        _employeeRepository = new EmployeeRepository(context);
+        _tableRepository = new TableRepository(context);
+        _reservationRepository = new ReservationRepository(context);
+        _orderRepository = new OrderRepository(context);
+        _menuItemRepository = new MenuItemRepository(context);
+        _orderItemRepository = new OrderItemRepository(context);
+        _reservationCustomerRestaurantViewRepository = new ReservationCustomerRestaurantViewRepository(context);
+        _employeeRestaurantViewRepository = new EmployeeRestaurantViewRepository(context);
     }
 
     public Task EnsureDatabaseAsync() => _context.Database.MigrateAsync();
 
-    public Task<Customer> CreateCustomerAsync(Customer customer) => CreateAsync(_context.Customers, customer);
+    public Task<Customer> CreateCustomerAsync(Customer customer) => _customerRepository.CreateAsync(customer);
 
     public Task<Restaurant> CreateRestaurantAsync(Restaurant restaurant) =>
-        CreateAsync(_context.Restaurants, restaurant);
+        _restaurantRepository.CreateAsync(restaurant);
 
-    public Task<Employee> CreateEmployeeAsync(Employee employee) => CreateAsync(_context.Employees, employee);
+    public Task<Employee> CreateEmployeeAsync(Employee employee) => _employeeRepository.CreateAsync(employee);
 
-    public Task<Table> CreateTableAsync(Table table) => CreateAsync(_context.Tables, table);
+    public Task<Table> CreateTableAsync(Table table) => _tableRepository.CreateAsync(table);
 
     public Task<Reservation> CreateReservationAsync(Reservation reservation) =>
-        CreateAsync(_context.Reservations, reservation);
+        _reservationRepository.CreateAsync(reservation);
 
-    public Task<Order> CreateOrderAsync(Order order) => CreateAsync(_context.Orders, order);
+    public Task<Order> CreateOrderAsync(Order order) => _orderRepository.CreateAsync(order);
 
-    public Task<MenuItem> CreateMenuItemAsync(MenuItem menuItem) => CreateAsync(_context.MenuItems, menuItem);
+    public Task<MenuItem> CreateMenuItemAsync(MenuItem menuItem) => _menuItemRepository.CreateAsync(menuItem);
 
-    public Task<OrderItem> CreateOrderItemAsync(OrderItem orderItem) => CreateAsync(_context.OrderItems, orderItem);
+    public Task<OrderItem> CreateOrderItemAsync(OrderItem orderItem) => _orderItemRepository.CreateAsync(orderItem);
 
-    public Task<Customer?> UpdateCustomerAsync(Customer customer) => UpdateAsync<Customer>(customer.CustomerId,
-        current =>
-        {
-            current.FirstName = customer.FirstName;
-            current.LastName = customer.LastName;
-            current.Email = customer.Email;
-            current.PhoneNumber = customer.PhoneNumber;
-        });
+    public Task<Customer?> UpdateCustomerAsync(Customer customer) => _customerRepository.UpdateAsync(customer);
 
-    public Task<Restaurant?> UpdateRestaurantAsync(Restaurant restaurant) => UpdateAsync<Restaurant>(
-        restaurant.RestaurantId, current =>
-        {
-            current.Name = restaurant.Name;
-            current.Address = restaurant.Address;
-            current.PhoneNumber = restaurant.PhoneNumber;
-            current.OpeningHours = restaurant.OpeningHours;
-        });
+    public Task<Restaurant?> UpdateRestaurantAsync(Restaurant restaurant) =>
+        _restaurantRepository.UpdateAsync(restaurant);
 
-    public Task<Employee?> UpdateEmployeeAsync(Employee employee) => UpdateAsync<Employee>(employee.EmployeeId,
-        current =>
-        {
-            current.FirstName = employee.FirstName;
-            current.LastName = employee.LastName;
-            current.Position = employee.Position;
-            current.RestaurantId = employee.RestaurantId;
-        });
+    public Task<Employee?> UpdateEmployeeAsync(Employee employee) => _employeeRepository.UpdateAsync(employee);
 
-    public Task<Table?> UpdateTableAsync(Table table) => UpdateAsync<Table>(table.TableId, current =>
-    {
-        current.Capacity = table.Capacity;
-        current.RestaurantId = table.RestaurantId;
-    });
+    public Task<Table?> UpdateTableAsync(Table table) => _tableRepository.UpdateAsync(table);
 
-    public Task<Reservation?> UpdateReservationAsync(Reservation reservation) => UpdateAsync<Reservation>(
-        reservation.ReservationId, current =>
-        {
-            current.Date = reservation.Date;
-            current.PartySize = reservation.PartySize;
-            current.RestaurantId = reservation.RestaurantId;
-            current.CustomerId = reservation.CustomerId;
-            current.TableId = reservation.TableId;
-        });
+    public Task<Reservation?> UpdateReservationAsync(Reservation reservation) =>
+        _reservationRepository.UpdateAsync(reservation);
 
-    public Task<Order?> UpdateOrderAsync(Order order) => UpdateAsync<Order>(order.OrderId, current =>
-    {
-        current.Date = order.Date;
-        current.TotalAmount = order.TotalAmount;
-        current.EmployeeId = order.EmployeeId;
-        current.ReservationId = order.ReservationId;
-    });
+    public Task<Order?> UpdateOrderAsync(Order order) => _orderRepository.UpdateAsync(order);
 
-    public Task<MenuItem?> UpdateMenuItemAsync(MenuItem menuItem) => UpdateAsync<MenuItem>(menuItem.ItemId, current =>
-    {
-        current.Name = menuItem.Name;
-        current.Description = menuItem.Description;
-        current.Price = menuItem.Price;
-        current.RestaurantId = menuItem.RestaurantId;
-    });
+    public Task<MenuItem?> UpdateMenuItemAsync(MenuItem menuItem) => _menuItemRepository.UpdateAsync(menuItem);
 
-    public Task<OrderItem?> UpdateOrderItemAsync(OrderItem orderItem) => UpdateAsync<OrderItem>(orderItem.OrderItemId,
-        current =>
-        {
-            current.Quantity = orderItem.Quantity;
-            current.ItemId = orderItem.ItemId;
-            current.OrderId = orderItem.OrderId;
-        });
+    public Task<OrderItem?> UpdateOrderItemAsync(OrderItem orderItem) => _orderItemRepository.UpdateAsync(orderItem);
 
-    public Task<bool> DeleteCustomerAsync(int customerId) => DeleteAsync<Customer>(customerId);
+    public Task<bool> DeleteCustomerAsync(int customerId) => _customerRepository.DeleteAsync(customerId);
 
-    public Task<bool> DeleteRestaurantAsync(int restaurantId) => DeleteAsync<Restaurant>(restaurantId);
+    public Task<bool> DeleteRestaurantAsync(int restaurantId) => _restaurantRepository.DeleteAsync(restaurantId);
 
-    public Task<bool> DeleteEmployeeAsync(int employeeId) => DeleteAsync<Employee>(employeeId);
+    public Task<bool> DeleteEmployeeAsync(int employeeId) => _employeeRepository.DeleteAsync(employeeId);
 
-    public Task<bool> DeleteTableAsync(int tableId) => DeleteAsync<Table>(tableId);
+    public Task<bool> DeleteTableAsync(int tableId) => _tableRepository.DeleteAsync(tableId);
 
-    public Task<bool> DeleteReservationAsync(int reservationId) => DeleteAsync<Reservation>(reservationId);
+    public Task<bool> DeleteReservationAsync(int reservationId) => _reservationRepository.DeleteAsync(reservationId);
 
-    public Task<bool> DeleteOrderAsync(int orderId) => DeleteAsync<Order>(orderId);
+    public Task<bool> DeleteOrderAsync(int orderId) => _orderRepository.DeleteAsync(orderId);
 
-    public Task<bool> DeleteMenuItemAsync(int itemId) => DeleteAsync<MenuItem>(itemId);
+    public Task<bool> DeleteMenuItemAsync(int itemId) => _menuItemRepository.DeleteAsync(itemId);
 
-    public Task<bool> DeleteOrderItemAsync(int orderItemId) => DeleteAsync<OrderItem>(orderItemId);
+    public Task<bool> DeleteOrderItemAsync(int orderItemId) => _orderItemRepository.DeleteAsync(orderItemId);
 
-    public async Task<List<Employee>> ListManagersAsync()
-    {
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee => employee.Position == "Manager")
-            .OrderBy(employee => employee.LastName)
-            .ThenBy(employee => employee.FirstName)
-            .ToListAsync();
-    }
+    public Task<List<Employee>> ListManagersAsync() => _employeeRepository.ListManagersAsync();
 
-    public async Task<List<Reservation>> GetReservationsByCustomerAsync(int customerId)
-    {
-        return await _context.Reservations
-            .AsNoTracking()
-            .Include(reservation => reservation.Restaurant)
-            .Include(reservation => reservation.Table)
-            .Include(reservation => reservation.Customer)
-            .Where(reservation => reservation.CustomerId == customerId)
-            .OrderBy(reservation => reservation.Date)
-            .ToListAsync();
-    }
+    public Task<List<Reservation>> GetReservationsByCustomerAsync(int customerId) =>
+        _reservationRepository.GetReservationsByCustomerAsync(customerId);
 
-    public async Task<List<OrderWithMenuItemsDto>> ListOrdersAndMenuItemsAsync(int reservationId)
-    {
-        var orders = await _context.Orders
-            .AsNoTracking()
-            .Include(order => order.Employee)
-            .Include(order => order.OrderItems)
-            .ThenInclude(orderItem => orderItem.Item)
-            .Where(order => order.ReservationId == reservationId)
-            .OrderBy(order => order.Date)
-            .ToListAsync();
+    public Task<List<OrderWithMenuItemsDto>> ListOrdersAndMenuItemsAsync(int reservationId) =>
+        _orderRepository.ListOrdersAndMenuItemsAsync(reservationId);
 
-        return orders
-            .Select(order => new OrderWithMenuItemsDto(
-                order.OrderId,
-                order.Date,
-                order.TotalAmount,
-                $"{order.Employee.FirstName} {order.Employee.LastName}",
-                order.OrderItems
-                    .Select(orderItem => new OrderMenuItemDto(
-                        orderItem.ItemId,
-                        orderItem.Item.Name,
-                        orderItem.Quantity,
-                        orderItem.Item.Price))
-                    .ToList()))
-            .ToList();
-    }
+    public Task<List<MenuItem>> ListOrderedMenuItemsAsync(int reservationId) =>
+        _orderRepository.ListOrderedMenuItemsAsync(reservationId);
 
-    public async Task<List<MenuItem>> ListOrderedMenuItemsAsync(int reservationId)
-    {
-        var orderedMenuItems = await _context.Orders
-            .AsNoTracking()
-            .Where(order => order.ReservationId == reservationId)
-            .Include(order => order.OrderItems)
-            .ThenInclude(orderItem => orderItem.Item)
-            .SelectMany(order => order.OrderItems)
-            .Select(orderItem => orderItem.Item)
-            .ToListAsync();
+    public Task<decimal> CalculateAverageOrderAmountAsync(int employeeId) =>
+        _orderRepository.CalculateAverageOrderAmountAsync(employeeId);
 
-        return orderedMenuItems
-            .GroupBy(menuItem => menuItem.ItemId)
-            .Select(group => group.First())
-            .OrderBy(menuItem => menuItem.Name)
-            .ToList();
-    }
+    public Task<List<ReservationCustomerRestaurantView>> ListReservationsWithCustomerAndRestaurantAsync() =>
+        _reservationCustomerRestaurantViewRepository.ListReservationsWithCustomerAndRestaurantAsync();
 
-    public async Task<decimal> CalculateAverageOrderAmountAsync(int employeeId)
-    {
-        return await _context.Orders
-            .AsNoTracking()
-            .Where(order => order.EmployeeId == employeeId)
-            .Select(order => (decimal?)order.TotalAmount)
-            .AverageAsync() ?? 0m;
-    }
-
-    public async Task<List<ReservationCustomerRestaurantView>> ListReservationsWithCustomerAndRestaurantAsync()
-    {
-        return await _context.ReservationCustomerRestaurantViews
-            .AsNoTracking()
-            .OrderBy(reservation => reservation.ReservationDate)
-            .ToListAsync();
-    }
-
-    public async Task<List<EmployeeRestaurantView>> ListEmployeesWithRestaurantAsync()
-    {
-        return await _context.EmployeeRestaurantViews
-            .AsNoTracking()
-            .OrderBy(employee => employee.RestaurantName)
-            .ThenBy(employee => employee.EmployeeLastName)
-            .ToListAsync();
-    }
+    public Task<List<EmployeeRestaurantView>> ListEmployeesWithRestaurantAsync() =>
+        _employeeRestaurantViewRepository.ListEmployeesWithRestaurantAsync();
 
     public Task<List<Customer>> GetCustomersWithReservationPartySizeGreaterThanAsync(int partySize)
-        => _context.GetCustomersWithReservationPartySizeGreaterThanAsync(partySize);
-
-    private async Task<T> CreateAsync<T>(DbSet<T> set, T entity) where T : class
-    {
-        await set.AddAsync(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    private async Task<T?> UpdateAsync<T>(int id, Action<T> updateAction) where T : class
-    {
-        var entity = await _context.Set<T>().FindAsync(id);
-        if (entity is null)
-        {
-            return null;
-        }
-
-        updateAction(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    private async Task<bool> DeleteAsync<T>(int id) where T : class
-    {
-        var entity = await _context.Set<T>().FindAsync(id);
-        if (entity is null)
-        {
-            return false;
-        }
-
-        _context.Set<T>().Remove(entity);
-        await _context.SaveChangesAsync();
-        return true;
-    }
+        => _customerRepository.GetCustomersWithReservationPartySizeGreaterThanAsync(partySize);
 }
-
-public sealed record OrderMenuItemDto(int ItemId, string Name, int Quantity, decimal UnitPrice);
-
-public sealed record OrderWithMenuItemsDto(
-    int OrderId,
-    DateTime Date,
-    decimal TotalAmount,
-    string EmployeeName,
-    List<OrderMenuItemDto> MenuItems);
