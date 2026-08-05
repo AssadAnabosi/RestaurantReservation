@@ -129,6 +129,13 @@ foreach (var menuItem in orderedMenuItems)
 var averageOrderAmount = await service.CalculateAverageOrderAmountAsync(demoEmployee.EmployeeId);
 Console.WriteLine($"Average order amount for employee {demoEmployee.EmployeeId}: {averageOrderAmount:C}");
 
+var reservationViewRows = await service.ListReservationsWithCustomerAndRestaurantAsync();
+Console.WriteLine("Reservations from view:");
+foreach (var reservation in reservationViewRows)
+{
+    Console.WriteLine($"- Reservation {reservation.ReservationId} for {reservation.CustomerFirstName} {reservation.CustomerLastName} at {reservation.RestaurantName}");
+}
+
 await service.DeleteOrderItemAsync(demoOrderItem.OrderItemId);
 await service.DeleteOrderAsync(demoOrder.OrderId);
 await service.DeleteReservationAsync(demoReservation.ReservationId);

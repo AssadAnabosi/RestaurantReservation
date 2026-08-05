@@ -14,6 +14,7 @@ public class RestaurantReservationDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<MenuItem> MenuItems { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<ReservationCustomerRestaurantView> ReservationCustomerRestaurantViews { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -43,6 +44,12 @@ public class RestaurantReservationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<MenuItem>().HasKey(p => p.ItemId);
+
+        modelBuilder.Entity<ReservationCustomerRestaurantView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_reservations_with_customer_restaurant");
+        });
 
         modelBuilder.Entity<OrderItem>()
             .HasOne<Order>(oi => oi.Order)
@@ -127,4 +134,21 @@ public class RestaurantReservationDbContext : DbContext
             new OrderItem { OrderItemId = 5, Quantity = 3, ItemId = 5, OrderId = 5 }
         );
     }
+}
+
+public sealed class ReservationCustomerRestaurantView
+{
+    public int ReservationId { get; set; }
+    public DateTime ReservationDate { get; set; }
+    public int PartySize { get; set; }
+    public int CustomerId { get; set; }
+    public string CustomerFirstName { get; set; } = string.Empty;
+    public string CustomerLastName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public string CustomerPhoneNumber { get; set; } = string.Empty;
+    public int RestaurantId { get; set; }
+    public string RestaurantName { get; set; } = string.Empty;
+    public string RestaurantAddress { get; set; } = string.Empty;
+    public string? RestaurantPhoneNumber { get; set; }
+    public string? RestaurantOpeningHours { get; set; }
 }

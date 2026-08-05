@@ -185,6 +185,14 @@ public sealed class RestaurantReservationService
             .AverageAsync() ?? 0m;
     }
 
+    public async Task<List<ReservationCustomerRestaurantView>> ListReservationsWithCustomerAndRestaurantAsync()
+    {
+        return await _context.ReservationCustomerRestaurantViews
+            .AsNoTracking()
+            .OrderBy(reservation => reservation.ReservationDate)
+            .ToListAsync();
+    }
+
     private async Task<T> CreateAsync<T>(DbSet<T> set, T entity) where T : class
     {
         await set.AddAsync(entity);
