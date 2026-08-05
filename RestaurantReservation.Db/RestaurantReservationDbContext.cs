@@ -35,7 +35,9 @@ public class RestaurantReservationDbContext : DbContext
                 "Connection string 'SQLSERVER_CONNECTIONSTRING' was not found in appsettings.json.");
         }
 
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder
+            .UseSqlServer(connectionString)
+            .UseSnakeCaseNamingConvention();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
