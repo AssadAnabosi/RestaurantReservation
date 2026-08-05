@@ -210,6 +210,9 @@ public sealed class RestaurantReservationService
             .ToListAsync();
     }
 
+    public Task<List<Customer>> GetCustomersWithReservationPartySizeGreaterThanAsync(int partySize)
+        => _context.GetCustomersWithReservationPartySizeGreaterThanAsync(partySize);
+
     private async Task<T> CreateAsync<T>(DbSet<T> set, T entity) where T : class
     {
         await set.AddAsync(entity);

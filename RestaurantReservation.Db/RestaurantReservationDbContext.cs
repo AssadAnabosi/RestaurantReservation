@@ -246,4 +246,13 @@ public class RestaurantReservationDbContext : DbContext
             new OrderItem { OrderItemId = 5, Quantity = 3, ItemId = 5, OrderId = 5 }
         );
     }
+
+    public async Task<List<Customer>> GetCustomersWithReservationPartySizeGreaterThanAsync(int partySize)
+    {
+        return await Customers
+            .FromSql(
+                $"EXEC dbo.sp_get_customers_with_reservation_party_size_greater_than {partySize}")
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

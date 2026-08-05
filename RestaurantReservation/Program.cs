@@ -148,6 +148,13 @@ foreach (var employee in employeeViewRows)
         $"- {employee.EmployeeFirstName} {employee.EmployeeLastName} ({employee.Position}) at {employee.RestaurantName}");
 }
 
+var customersWithLargeReservations = await service.GetCustomersWithReservationPartySizeGreaterThanAsync(3);
+Console.WriteLine("Customers with reservations larger than 3:");
+foreach (var customer in customersWithLargeReservations)
+{
+    Console.WriteLine($"- {customer.FirstName} {customer.LastName} ({customer.Email})");
+}
+
 await service.DeleteOrderItemAsync(demoOrderItem.OrderItemId);
 await service.DeleteOrderAsync(demoOrder.OrderId);
 await service.DeleteReservationAsync(demoReservation.ReservationId);
