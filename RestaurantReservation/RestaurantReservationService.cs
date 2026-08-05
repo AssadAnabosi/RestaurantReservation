@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RestaurantReservation.Db;
 using RestaurantReservation.Db.Entities;
+using RestaurantReservation.Db.Views;
 
 namespace RestaurantReservation;
 
@@ -17,13 +18,15 @@ public sealed class RestaurantReservationService
 
     public Task<Customer> CreateCustomerAsync(Customer customer) => CreateAsync(_context.Customers, customer);
 
-    public Task<Restaurant> CreateRestaurantAsync(Restaurant restaurant) => CreateAsync(_context.Restaurants, restaurant);
+    public Task<Restaurant> CreateRestaurantAsync(Restaurant restaurant) =>
+        CreateAsync(_context.Restaurants, restaurant);
 
     public Task<Employee> CreateEmployeeAsync(Employee employee) => CreateAsync(_context.Employees, employee);
 
     public Task<Table> CreateTableAsync(Table table) => CreateAsync(_context.Tables, table);
 
-    public Task<Reservation> CreateReservationAsync(Reservation reservation) => CreateAsync(_context.Reservations, reservation);
+    public Task<Reservation> CreateReservationAsync(Reservation reservation) =>
+        CreateAsync(_context.Reservations, reservation);
 
     public Task<Order> CreateOrderAsync(Order order) => CreateAsync(_context.Orders, order);
 
@@ -31,29 +34,32 @@ public sealed class RestaurantReservationService
 
     public Task<OrderItem> CreateOrderItemAsync(OrderItem orderItem) => CreateAsync(_context.OrderItems, orderItem);
 
-    public Task<Customer?> UpdateCustomerAsync(Customer customer) => UpdateAsync<Customer>(customer.CustomerId, current =>
-    {
-        current.FirstName = customer.FirstName;
-        current.LastName = customer.LastName;
-        current.Email = customer.Email;
-        current.PhoneNumber = customer.PhoneNumber;
-    });
+    public Task<Customer?> UpdateCustomerAsync(Customer customer) => UpdateAsync<Customer>(customer.CustomerId,
+        current =>
+        {
+            current.FirstName = customer.FirstName;
+            current.LastName = customer.LastName;
+            current.Email = customer.Email;
+            current.PhoneNumber = customer.PhoneNumber;
+        });
 
-    public Task<Restaurant?> UpdateRestaurantAsync(Restaurant restaurant) => UpdateAsync<Restaurant>(restaurant.RestaurantId, current =>
-    {
-        current.Name = restaurant.Name;
-        current.Address = restaurant.Address;
-        current.PhoneNumber = restaurant.PhoneNumber;
-        current.OpeningHours = restaurant.OpeningHours;
-    });
+    public Task<Restaurant?> UpdateRestaurantAsync(Restaurant restaurant) => UpdateAsync<Restaurant>(
+        restaurant.RestaurantId, current =>
+        {
+            current.Name = restaurant.Name;
+            current.Address = restaurant.Address;
+            current.PhoneNumber = restaurant.PhoneNumber;
+            current.OpeningHours = restaurant.OpeningHours;
+        });
 
-    public Task<Employee?> UpdateEmployeeAsync(Employee employee) => UpdateAsync<Employee>(employee.EmployeeId, current =>
-    {
-        current.FirstName = employee.FirstName;
-        current.LastName = employee.LastName;
-        current.Position = employee.Position;
-        current.RestaurantId = employee.RestaurantId;
-    });
+    public Task<Employee?> UpdateEmployeeAsync(Employee employee) => UpdateAsync<Employee>(employee.EmployeeId,
+        current =>
+        {
+            current.FirstName = employee.FirstName;
+            current.LastName = employee.LastName;
+            current.Position = employee.Position;
+            current.RestaurantId = employee.RestaurantId;
+        });
 
     public Task<Table?> UpdateTableAsync(Table table) => UpdateAsync<Table>(table.TableId, current =>
     {
@@ -61,14 +67,15 @@ public sealed class RestaurantReservationService
         current.RestaurantId = table.RestaurantId;
     });
 
-    public Task<Reservation?> UpdateReservationAsync(Reservation reservation) => UpdateAsync<Reservation>(reservation.ReservationId, current =>
-    {
-        current.Date = reservation.Date;
-        current.PartySize = reservation.PartySize;
-        current.RestaurantId = reservation.RestaurantId;
-        current.CustomerId = reservation.CustomerId;
-        current.TableId = reservation.TableId;
-    });
+    public Task<Reservation?> UpdateReservationAsync(Reservation reservation) => UpdateAsync<Reservation>(
+        reservation.ReservationId, current =>
+        {
+            current.Date = reservation.Date;
+            current.PartySize = reservation.PartySize;
+            current.RestaurantId = reservation.RestaurantId;
+            current.CustomerId = reservation.CustomerId;
+            current.TableId = reservation.TableId;
+        });
 
     public Task<Order?> UpdateOrderAsync(Order order) => UpdateAsync<Order>(order.OrderId, current =>
     {
@@ -86,12 +93,13 @@ public sealed class RestaurantReservationService
         current.RestaurantId = menuItem.RestaurantId;
     });
 
-    public Task<OrderItem?> UpdateOrderItemAsync(OrderItem orderItem) => UpdateAsync<OrderItem>(orderItem.OrderItemId, current =>
-    {
-        current.Quantity = orderItem.Quantity;
-        current.ItemId = orderItem.ItemId;
-        current.OrderId = orderItem.OrderId;
-    });
+    public Task<OrderItem?> UpdateOrderItemAsync(OrderItem orderItem) => UpdateAsync<OrderItem>(orderItem.OrderItemId,
+        current =>
+        {
+            current.Quantity = orderItem.Quantity;
+            current.ItemId = orderItem.ItemId;
+            current.OrderId = orderItem.OrderId;
+        });
 
     public Task<bool> DeleteCustomerAsync(int customerId) => DeleteAsync<Customer>(customerId);
 
@@ -190,6 +198,15 @@ public sealed class RestaurantReservationService
         return await _context.ReservationCustomerRestaurantViews
             .AsNoTracking()
             .OrderBy(reservation => reservation.ReservationDate)
+            .ToListAsync();
+    }
+
+    public async Task<List<EmployeeRestaurantView>> ListEmployeesWithRestaurantAsync()
+    {
+        return await _context.EmployeeRestaurantViews
+            .AsNoTracking()
+            .OrderBy(employee => employee.RestaurantName)
+            .ThenBy(employee => employee.EmployeeLastName)
             .ToListAsync();
     }
 

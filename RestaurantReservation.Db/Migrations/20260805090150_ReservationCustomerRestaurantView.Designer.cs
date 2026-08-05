@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RestaurantReservation.Db;
 
@@ -11,9 +12,11 @@ using RestaurantReservation.Db;
 namespace RestaurantReservation.Db.Migrations
 {
     [DbContext(typeof(RestaurantReservationDbContext))]
-    partial class RestaurantReservationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805090150_ReservationCustomerRestaurantView")]
+    partial class ReservationCustomerRestaurantView
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,54 +630,6 @@ namespace RestaurantReservation.Db.Migrations
                             Capacity = 8,
                             RestaurantId = 5
                         });
-                });
-
-            modelBuilder.Entity("RestaurantReservation.Db.Views.EmployeeRestaurantView", b =>
-                {
-                    b.Property<string>("EmployeeFirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("employee_first_name");
-
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int")
-                        .HasColumnName("employee_id");
-
-                    b.Property<string>("EmployeeLastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("employee_last_name");
-
-                    b.Property<string>("Position")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("position");
-
-                    b.Property<string>("RestaurantAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("restaurant_address");
-
-                    b.Property<int>("RestaurantId")
-                        .HasColumnType("int")
-                        .HasColumnName("restaurant_id");
-
-                    b.Property<string>("RestaurantName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("restaurant_name");
-
-                    b.Property<string>("RestaurantOpeningHours")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("restaurant_opening_hours");
-
-                    b.Property<string>("RestaurantPhoneNumber")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("restaurant_phone_number");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("vw_employees_with_restaurant", (string)null);
                 });
 
             modelBuilder.Entity("RestaurantReservation.Db.Views.ReservationCustomerRestaurantView", b =>
