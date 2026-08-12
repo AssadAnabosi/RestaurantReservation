@@ -46,5 +46,9 @@ app.MapGet("/api/reservations/{reservationId}/orders", ([FromServices] OrderRepo
     return repo.ListOrdersAndMenuItemsAsync(reservationId);
 }).WithName("ListOrdersAndMenuItems");
 
+app.MapGet("/api/reservations/{reservationId}/menu-items", ([FromServices] OrderRepository repo, int reservationId) =>
+{
+    return repo.ListOrderedMenuItemsAsync(reservationId);
+}).WithName("ListOrderedMenuItems");
 
 app.Run();
