@@ -1,8 +1,22 @@
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantReservation.Db;
+using RestaurantReservation.Db.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<RestaurantReservationDbContext>();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
+builder.Services.AddScoped<EmployeeRepository>();
+builder.Services.AddScoped<ReservationRepository>();
+builder.Services.AddScoped<OrderRepository>();
 
 var app = builder.Build();
 
@@ -16,5 +30,10 @@ app.UseHttpsRedirection();
 
 app.MapGet("/health", () => Results.Ok("Ok"))
     .WithName("GetHealth");
+
+app.MapGet("/api/employees/managers", ([FromServices] EmployeeRepository repo) =>
+{
+    return repo.ListManagersAsync();
+}).WithName("ListManagers");
 
 app.Run();
