@@ -51,4 +51,9 @@ app.MapGet("/api/reservations/{reservationId}/menu-items", ([FromServices] Order
     return repo.ListOrderedMenuItemsAsync(reservationId);
 }).WithName("ListOrderedMenuItems");
 
+app.MapGet("/api/employees/{employeeId}/average-order-amount", ([FromServices] OrderRepository repo, int employeeId) =>
+{
+    return repo.CalculateAverageOrderAmountAsync(employeeId);
+}).WithName("CalculateAverageOrderAmount");
+
 app.Run();
