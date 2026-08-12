@@ -36,4 +36,9 @@ app.MapGet("/api/employees/managers", ([FromServices] EmployeeRepository repo) =
     return repo.ListManagersAsync();
 }).WithName("ListManagers");
 
+app.MapGet("/api/reservations/customer/{customerId}", ([FromServices] ReservationRepository repo, int customerId) =>
+{
+    return repo.GetReservationsByCustomerAsync(customerId);
+}).WithName("GetReservationsByCustomer");
+
 app.Run();
