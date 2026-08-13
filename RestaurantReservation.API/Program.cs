@@ -1,10 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using RestaurantReservation.API;
 using RestaurantReservation.Db;
 using RestaurantReservation.Db.Repositories;
 
@@ -23,26 +19,20 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
+builder.Services.AddSingleton<JwtTokenService>();
 
 builder.Services.AddScoped<EmployeeRepository>();
 builder.Services.AddScoped<ReservationRepository>();
 builder.Services.AddScoped<OrderRepository>();
 
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+    .AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .Validate(o => !string.IsNullOrWhiteSpace(o.SecretKey), "Jwt:SecretKey is not configured.")
+    .ValidateOnStart();
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
@@ -68,16 +58,17 @@ app.MapGet("/health", () => Results.Ok("Ok"))
 
 var api = app.MapGroup("/api");
 
-api.MapPost("/auth", (AuthRequest? request) =>
+api.MapPost("/auth", (AuthRequest? request, JwtTokenService tokenService) =>
 {
     if (request is null)
         return Results.BadRequest("Request body is required.");
 
-    var username = request.Username.Trim();
+    var username = request.Username?.Trim();
     if (string.IsNullOrWhiteSpace(username))
         return Results.BadRequest("Username is required.");
 
-    return Results.Ok(CreateJwtToken(username, jwtIssuer, jwtSecretKey));
+    var token = tokenService.CreateToken(request.Username!);
+    return Results.Ok(new { token });
 });
 
 api.MapGet("/employees/managers", ([FromServices] EmployeeRepository repo) => repo.ListManagersAsync())
@@ -105,26 +96,5 @@ api.MapGet("/employees/{employeeId}/average-order-amount",
     .WithName("CalculateAverageOrderAmount");
 
 app.Run();
-
-static string CreateJwtToken(string username, string issuer, string secretKey)
-{
-    var signingCredentials = new SigningCredentials(
-        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-        SecurityAlgorithms.HmacSha256);
-
-    var claims = new[]
-    {
-        new Claim(JwtRegisteredClaimNames.Sub, username),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
-
-    var token = new JwtSecurityToken(
-        issuer: issuer,
-        claims: claims,
-        expires: DateTime.UtcNow.AddDays(1),
-        signingCredentials: signingCredentials);
-
-    return new JwtSecurityTokenHandler().WriteToken(token);
-}
 
 record AuthRequest(string Username);
