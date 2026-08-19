@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RestaurantReservation.API.Contracts;
-using RestaurantReservation.Db.Entities;
-using RestaurantReservation.Db.Repositories;
+using RestaurantReservation.API.Services;
 
 namespace RestaurantReservation.API.Endpoints;
 
@@ -12,16 +11,16 @@ public static class ReservationEndpoints
         var api = app.MapGroup("/api");
         var reservations = api.MapGroup("/reservations");
 
-        reservations.MapGet("", ([FromServices] ReservationRepository repo) => repo.ListAsync())
+        reservations.MapGet("", ([FromServices] IReservationService service) => service.ListAsync())
             .RequireAuthorization()
             .WithName("ListReservations");
 
-        reservations.MapGet("/{reservationId:int}", ([FromServices] ReservationRepository repo, int reservationId) =>
-                repo.GetByIdAsync(reservationId))
+        reservations.MapGet("/{reservationId:int}", ([FromServices] IReservationService service, int reservationId) =>
+                service.GetByIdAsync(reservationId))
             .RequireAuthorization()
             .WithName("GetReservationById");
 
-        reservations.MapPost("", async ([FromServices] ReservationRepository repo, ReservationRequest? request) =>
+        reservations.MapPost("", async ([FromServices] IReservationService service, ReservationRequest? request) =>
             {
                 if (request is null)
                     return Results.BadRequest("Request body is required.");
@@ -29,21 +28,14 @@ public static class ReservationEndpoints
                 if (request.PartySize <= 0)
                     return Results.BadRequest("Party size must be greater than zero.");
 
-                var created = await repo.CreateAsync(new Reservation
-                {
-                    Date = request.Date,
-                    PartySize = request.PartySize,
-                    RestaurantId = request.RestaurantId,
-                    CustomerId = request.CustomerId,
-                    TableId = request.TableId
-                });
+                var created = await service.CreateAsync(request);
 
                 return Results.Created($"/api/reservations/{created.ReservationId}", created);
             })
             .RequireAuthorization()
             .WithName("CreateReservation");
 
-        reservations.MapPut("/{reservationId:int}", async ([FromServices] ReservationRepository repo, int reservationId,
+        reservations.MapPut("/{reservationId:int}", async ([FromServices] IReservationService service, int reservationId,
                 ReservationRequest? request) =>
             {
                 if (request is null)
@@ -52,41 +44,33 @@ public static class ReservationEndpoints
                 if (request.PartySize <= 0)
                     return Results.BadRequest("Party size must be greater than zero.");
 
-                var updated = await repo.UpdateAsync(new Reservation
-                {
-                    ReservationId = reservationId,
-                    Date = request.Date,
-                    PartySize = request.PartySize,
-                    RestaurantId = request.RestaurantId,
-                    CustomerId = request.CustomerId,
-                    TableId = request.TableId
-                });
+                var updated = await service.UpdateAsync(reservationId, request);
 
                 return updated is null ? Results.NotFound() : Results.Ok(updated);
             })
             .RequireAuthorization()
             .WithName("UpdateReservation");
 
-        reservations.MapDelete("/{reservationId:int}", async ([FromServices] ReservationRepository repo, int reservationId) =>
+        reservations.MapDelete("/{reservationId:int}", async ([FromServices] IReservationService service, int reservationId) =>
             {
-                var deleted = await repo.DeleteAsync(reservationId);
+                var deleted = await service.DeleteAsync(reservationId);
                 return deleted ? Results.NoContent() : Results.NotFound();
             })
             .RequireAuthorization()
             .WithName("DeleteReservation");
 
         reservations.MapGet("/customer/{customerId:int}",
-                ([FromServices] ReservationRepository repo, int customerId) => repo.GetReservationsByCustomerAsync(customerId))
+                ([FromServices] IReservationService service, int customerId) => service.GetReservationsByCustomerAsync(customerId))
             .RequireAuthorization()
             .WithName("GetReservationsByCustomer");
 
         reservations.MapGet("/{reservationId:int}/orders",
-                ([FromServices] OrderRepository repo, int reservationId) => repo.ListOrdersAndMenuItemsAsync(reservationId))
+                ([FromServices] IReservationService service, int reservationId) => service.ListOrdersAndMenuItemsAsync(reservationId))
             .RequireAuthorization()
             .WithName("ListOrdersAndMenuItems");
 
         reservations.MapGet("/{reservationId:int}/menu-items",
-                ([FromServices] OrderRepository repo, int reservationId) => repo.ListOrderedMenuItemsAsync(reservationId))
+                ([FromServices] IReservationService service, int reservationId) => service.ListOrderedMenuItemsAsync(reservationId))
             .RequireAuthorization()
             .WithName("ListOrderedMenuItems");
 

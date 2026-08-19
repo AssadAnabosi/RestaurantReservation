@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using RestaurantReservation.API;
 using RestaurantReservation.API.Endpoints;
+using RestaurantReservation.API.Services;
 using RestaurantReservation.Db;
 using RestaurantReservation.Db.Repositories;
 
@@ -19,6 +20,8 @@ builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<EmployeeRepository>();
 builder.Services.AddScoped<ReservationRepository>();
 builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 builder.Services
     .AddOptions<JwtOptions>()

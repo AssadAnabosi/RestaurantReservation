@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using RestaurantReservation.Db.Repositories;
+using RestaurantReservation.API.Services;
 
 namespace RestaurantReservation.API.Endpoints;
 
@@ -9,12 +9,12 @@ public static class EmployeeEndpoints
     {
         var api = app.MapGroup("/api");
 
-        api.MapGet("/employees/managers", ([FromServices] EmployeeRepository repo) => repo.ListManagersAsync())
+        api.MapGet("/employees/managers", ([FromServices] IEmployeeService service) => service.ListManagersAsync())
             .RequireAuthorization()
             .WithName("ListManagers");
 
         api.MapGet("/employees/{employeeId:int}/average-order-amount",
-                ([FromServices] OrderRepository repo, int employeeId) => repo.CalculateAverageOrderAmountAsync(employeeId))
+            ([FromServices] IEmployeeService service, int employeeId) => service.CalculateAverageOrderAmountAsync(employeeId))
             .RequireAuthorization()
             .WithName("CalculateAverageOrderAmount");
 
