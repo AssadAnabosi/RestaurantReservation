@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantReservation.API.Contracts;
 using RestaurantReservation.API.Services;
@@ -15,62 +16,85 @@ public static class ReservationEndpoints
             .RequireAuthorization()
             .WithName("ListReservations");
 
-        reservations.MapGet("/{reservationId:int}", ([FromServices] IReservationService service, int reservationId) =>
-                service.GetByIdAsync(reservationId))
+        reservations.MapGet("/{reservationId:int}",
+                async Task<Results<
+                        Ok<ReservationDto>,
+                        NotFound>>
+                    ([FromServices] IReservationService service, int reservationId) =>
+                {
+                    var res = await service.GetByIdAsync(reservationId);
+                    return res is null ? TypedResults.NotFound() : TypedResults.Ok(res);
+                })
             .RequireAuthorization()
             .WithName("GetReservationById");
 
-        reservations.MapPost("", async ([FromServices] IReservationService service, ReservationRequest? request) =>
-            {
-                if (request is null)
-                    return Results.BadRequest("Request body is required.");
+        reservations.MapPost("",
+                async Task<Results<
+                        Created<ReservationDto>,
+                        BadRequest<string>>>
+                    ([FromServices] IReservationService service, ReservationRequest? request) =>
+                {
+                    if (request is null)
+                        return TypedResults.BadRequest("Request body is required.");
 
-                if (request.PartySize <= 0)
-                    return Results.BadRequest("Party size must be greater than zero.");
+                    if (request.PartySize <= 0)
+                        return TypedResults.BadRequest("Party size must be greater than zero.");
 
-                var created = await service.CreateAsync(request);
+                    var created = await service.CreateAsync(request);
 
-                return Results.Created($"/api/reservations/{created.ReservationId}", created);
-            })
+                    return TypedResults.Created($"/api/reservations/{created.ReservationId}", created);
+                })
             .RequireAuthorization()
             .WithName("CreateReservation");
 
-        reservations.MapPut("/{reservationId:int}", async ([FromServices] IReservationService service, int reservationId,
-                ReservationRequest? request) =>
-            {
-                if (request is null)
-                    return Results.BadRequest("Request body is required.");
+        reservations.MapPut("/{reservationId:int}",
+                async Task<Results<
+                    Ok<ReservationDto>,
+                    BadRequest<string>,
+                    NotFound>>
+                ([FromServices] IReservationService service, int reservationId,
+                    ReservationRequest? request) =>
+                {
+                    if (request is null)
+                        return TypedResults.BadRequest("Request body is required.");
 
-                if (request.PartySize <= 0)
-                    return Results.BadRequest("Party size must be greater than zero.");
+                    if (request.PartySize <= 0)
+                        return TypedResults.BadRequest("Party size must be greater than zero.");
 
-                var updated = await service.UpdateAsync(reservationId, request);
+                    var updated = await service.UpdateAsync(reservationId, request);
 
-                return updated is null ? Results.NotFound() : Results.Ok(updated);
-            })
+                    return updated is null ? TypedResults.NotFound() : TypedResults.Ok(updated);
+                })
             .RequireAuthorization()
             .WithName("UpdateReservation");
 
-        reservations.MapDelete("/{reservationId:int}", async ([FromServices] IReservationService service, int reservationId) =>
-            {
-                var deleted = await service.DeleteAsync(reservationId);
-                return deleted ? Results.NoContent() : Results.NotFound();
-            })
+        reservations.MapDelete("/{reservationId:int}",
+                async Task<Results<
+                        NoContent,
+                        NotFound>>
+                    ([FromServices] IReservationService service, int reservationId) =>
+                {
+                    var deleted = await service.DeleteAsync(reservationId);
+                    return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
+                })
             .RequireAuthorization()
             .WithName("DeleteReservation");
 
         reservations.MapGet("/customer/{customerId:int}",
-                ([FromServices] IReservationService service, int customerId) => service.GetReservationsByCustomerAsync(customerId))
+                ([FromServices] IReservationService service, int customerId) =>
+                    service.GetReservationsByCustomerAsync(customerId))
             .RequireAuthorization()
             .WithName("GetReservationsByCustomer");
 
         reservations.MapGet("/{reservationId:int}/orders",
-                ([FromServices] IReservationService service, int reservationId) => service.ListOrdersAndMenuItemsAsync(reservationId))
+                ([FromServices] IReservationService service, int reservationId) =>
+                    service.ListOrdersAndMenuItemsAsync(reservationId))
             .RequireAuthorization()
             .WithName("ListOrdersAndMenuItems");
 
         reservations.MapGet("/{reservationId:int}/menu-items",
-                ([FromServices] IReservationService service, int reservationId) => service.ListOrderedMenuItemsAsync(reservationId))
+                ([FromServices] IReservationService service, int reservationId) =>
+                    service.ListOrderedMenuItemsAsync(reservationId))
             .RequireAuthorization()
             .WithName("ListOrderedMenuItems");
 
