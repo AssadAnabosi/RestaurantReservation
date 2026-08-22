@@ -34,18 +34,29 @@ public static class ReservationEndpoints
                         BadRequest<string>>>
                     ([FromServices] IReservationService service, ReservationRequest? request) =>
                 {
-                    if (request is null)
-                        return TypedResults.BadRequest("Request body is required.");
-
-                    if (request.PartySize <= 0)
-                        return TypedResults.BadRequest("Party size must be greater than zero.");
-
-                    var created = await service.CreateAsync(request);
+                    var created = await service.CreateAsync(request!);
 
                     return TypedResults.Created($"/api/reservations/{created.ReservationId}", created);
                 })
             .RequireAuthorization()
-            .WithName("CreateReservation");
+            .WithName("CreateReservation")
+            .AddEndpointFilter(async (context, next) =>
+            {
+                var errors = new Dictionary<string, string[]>();
+                var requestBody = context.GetArgument<ReservationRequest>(1) ?? null;
+                if (requestBody is null)
+                {
+                    return Results.BadRequest("Request body is required.");
+                }
+
+                if (requestBody.PartySize <= 0)
+                    errors.Add(nameof(ReservationRequest.PartySize), ["Party size must be greater than zero."]);
+
+                if (errors.Count > 0)
+                    return Results.ValidationProblem(errors);
+
+                return await next(context);
+            });
 
         reservations.MapPut("/{reservationId:int}",
                 async Task<Results<

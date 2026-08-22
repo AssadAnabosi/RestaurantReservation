@@ -50,6 +50,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.Use(async (context, next) =>
+    {
+        Console.WriteLine($"[{context.Request.Method}] {context.Request.Path.Value} - {DateTime.UtcNow} Started");
+        await next(context);
+        Console.WriteLine($"[{context.Request.Method}] {context.Request.Path.Value} - {DateTime.UtcNow} Completed");
+    }
+);
 
 app.MapHealthEndpoint();
 app.MapAuthEndpoints();
