@@ -19,6 +19,27 @@ public sealed class ReservationRepository
         return reservation;
     }
 
+    public async Task<List<Reservation>> ListAsync()
+    {
+        return await _context.Reservations
+            .AsNoTracking()
+            .Include(reservation => reservation.Restaurant)
+            .Include(reservation => reservation.Customer)
+            .Include(reservation => reservation.Table)
+            .OrderBy(reservation => reservation.Date)
+            .ToListAsync();
+    }
+
+    public async Task<Reservation?> GetByIdAsync(int reservationId)
+    {
+        return await _context.Reservations
+            .AsNoTracking()
+            .Include(reservation => reservation.Restaurant)
+            .Include(reservation => reservation.Customer)
+            .Include(reservation => reservation.Table)
+            .FirstOrDefaultAsync(reservation => reservation.ReservationId == reservationId);
+    }
+
     public async Task<Reservation?> UpdateAsync(Reservation reservation)
     {
         var current = await _context.Reservations.FindAsync(reservation.ReservationId);
